@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lucky Roll – High Roller Casino Dice</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800&family=Playfair+Display:wght@700;900&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --gold-light: #ffe082;
+      --gold: #f5b041;
+      --gold-dark: #b78112;
+      --felt-green: #0b532c;
+      --felt-dark: #062e18;
+      --mahogany: #2b1208;
+      --mahogany-light: #441d0e;
+      --ruby-red: #c0392b;
+      --cream: #fff9e6;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #07170e;
+      font-family: 'Cinzel', serif;
+      user-select: none;
+    }
+
+    /* Overall Casino Room Backdrop */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      position: relative;
+    }
+
+    /* Outer Luxury Casino Table Frame (Mahogany Rail) */
+    .casino-table-frame {
+      width: 100%;
+      height: 100%;
+      max-width: 1300px;
+      max-height: 96vh;
+      background: radial-gradient(circle at 50% 20%, #4a2213 0%, var(--mahogany) 80%, #150904 100%);
+      border-radius: 28px;
+      padding: 12px;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.95),
+        inset 0 2px 3px rgba(255, 215, 120, 0.4),
+        inset 0 -4px 10px rgba(0, 0, 0, 0.8),
+        0 0 0 4px #1c0c05,
+        0 0 0 6px var(--gold-dark);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Gold Brass Inlay Rim inside the wooden rail */
+    .brass-inlay {
+      width: 100%;
+      height: 100%;
+      border-radius: 22px;
+      border: 3px solid #d4af37;
+      box-shadow:
+        0 0 15px rgba(212, 175, 55, 0.3),
+        inset 0 0 15px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Emerald Green Felt Surface */
+    .felt-surface {
+      flex: 1;
+      width: 100%;
+      background:
+        radial-gradient(ellipse at 50% 45%, #13753e 0%, #0c522b 55%, var(--felt-dark) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle Card Suit Watermark / Felt Grain */
+    .felt-surface::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 8px);
+      background-size: 16px 16px, auto;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    /* Casino Table Watermark Lines */
+    .felt-surface::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 2px dashed rgba(245, 176, 65, 0.22);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    /* Corner Card Suits */
+    .corner-suit {
+      position: absolute;
+      font-size: 1.8rem;
+      color: rgba(245, 176, 65, 0.35);
+      text-shadow: 0 0 8px rgba(245, 176, 65, 0.2);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .suit-tl { top: 18px; left: 24px; }
+    .suit-tr { top: 18px; right: 24px; }
+    .suit-bl { bottom: 18px; left: 24px; }
+    .suit-br { bottom: 18px; right: 24px; }
+
+    /* Sound Mute Toggle in top corner */
+    .sound-toggle {
+      position: absolute;
+      top: 18px;
+      right: 70px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--gold-dark);
+      border-radius: 20px;
+      padding: 5px 12px;
+      color: var(--gold-light);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+      transition: all 0.2s;
+    }
+    .sound-toggle:hover {
+      background: rgba(0,0,0,0.7);
+      border-color: var(--gold);
+    }
+
+    /* ── HEADER SECTION ─────────────────────────────────── */
+    .casino-header {
+      text-align: center;
+      position: relative;
+      z-index: 3;
+      margin-top: 2px;
+    }
+
+    .casino-header h1 {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: linear-gradient(180deg, #fff2be 0%, #f7b733 45%, #b27a0e 85%, #d49e19 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 16px rgba(245,176,65,0.4));
+    }
+
+    .casino-header .subtitle {
+      font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      opacity: 0.85;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .subtitle::before, .subtitle::after {
+      content: '◆';
+      color: var(--gold);
+      font-size: 0.7rem;
+    }
+
+    /* ── CONTROLS PANEL (Arrows + ROLL button side by side) ── */
+    .controls-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 3vw, 24px);
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 4;
+      background: rgba(5, 20, 10, 0.7);
+      border: 2px solid var(--gold-dark);
+      border-radius: 18px;
+      padding: 10px 22px;
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.6),
+        inset 0 1px 1px rgba(255,255,255,0.15);
+    }
+
+    /* Dice Counter Stepper */
+    .dice-stepper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stepper-label {
+      font-size: clamp(0.75rem, 1.3vw, 0.95rem);
+      color: var(--gold-light);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .stepper-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1.5px solid #a87913;
+      border-radius: 12px;
+      padding: 4px 8px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    }
+
+    /* Scroll Arrows */
+    .arrow-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid #ffe28a;
+      background: linear-gradient(180deg, #ffd359 0%, #c88f13 60%, #875c02 100%);
+      color: #1f1100;
+      font-size: 1.1rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 3px 8px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+      transition: all 0.1s ease;
+    }
+
+    .arrow-btn:hover:not(:disabled) {
+      filter: brightness(1.2);
+      transform: translateY(-1px);
+    }
+
+    .arrow-btn:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      filter: brightness(0.95);
+    }
+
+    .arrow-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      filter: grayscale(0.8);
+      transform: none;
+    }
+
+    .dice-count-display {
+      min-width: 36px;
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 230, 150, 0.7);
+    }
+
+    /* ROLL BUTTON (Positioned next to arrows) */
+    .roll-button {
+      position: relative;
+      background: linear-gradient(180deg, #e74c3c 0%, #c0392b 40%, #851717 90%, #5e0c0c 100%);
+      border: 2px solid #ffd359;
+      border-radius: 14px;
+      padding: 12px 34px;
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 900;
+      color: #fff9e6;
+      letter-spacing: 3px;
+      cursor: pointer;
+      box-shadow:
+        0 6px 20px rgba(192, 57, 43, 0.6),
+        0 0 15px rgba(255, 211, 89, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      transition: all 0.15s ease;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .roll-button::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .roll-button:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .roll-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow:
+        0 10px 25px rgba(192, 57, 43, 0.8),
+        0 0 22px rgba(255, 211, 89, 0.6),
+        inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      filter: brightness(1.1);
+    }
+
+    .roll-button:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .roll-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+      transform: none;
+    }
+
+    /* ── DICE ARENA / STAGE (Maximized Area) ─────────────── */
+    .dice-arena {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 3.5vw, 38px);
+      flex-wrap: nowrap;
+      position: relative;
+      z-index: 3;
+      padding: 10px 0;
+      perspective: 800px;
+    }
+
+    /* Individual Die Item (Die + Number indicator below) */
+    .die-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: slotEnter 0.35s ease forwards;
+    }
+
+    @keyframes slotEnter {
+      from {
+        opacity: 0;
+        transform: scale(0.4) translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Die Viewport */
+    .die-card {
+      width: clamp(75px, 12vw, 125px);
+      height: clamp(75px, 12vw, 125px);
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.7));
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+
+    .die-card:hover {
+      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 10px rgba(255,215,0,0.3));
+    }
+
+    /* SVG container for crisp rendering */
+    .die-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform 0.2s;
+    }
+
+    /* Rolling Animation Effects */
+    @keyframes rollingTumble {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+      20% {
+        transform: translateY(-42px) rotate(140deg) scale(1.12);
+      }
+      40% {
+        transform: translateY(-60px) rotate(270deg) scale(1.18);
+      }
+      65% {
+        transform: translateY(-20px) rotate(430deg) scale(1.05);
+      }
+      85% {
+        transform: translateY(-5px) rotate(660deg) scale(0.98);
+      }
+      100% {
+        transform: translateY(0) rotate(720deg) scale(1);
+      }
+    }
+
+    .die-card.is-rolling {
+      animation: rollingTumble 0.95s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    }
+
+    /* Top-view settling bounce */
+    .die-card.settled {
+      animation: settleBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes settleBounce {
+      0% { transform: scale(0.85); }
+      60% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* NUMBER INDICATOR SHOWN BELOW THE DIE */
+    .die-number-plate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 30%, #2e1707 0%, #120701 100%);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      min-width: 44px;
+      height: 36px;
+      padding: 0 10px;
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.7),
+        inset 0 1px 2px rgba(255, 230, 150, 0.3);
+      position: relative;
+    }
+
+    .die-number-value {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #fff1b8;
+      text-shadow:
+        0 0 10px rgba(245, 176, 65, 0.9),
+        0 1px 2px #000;
+      letter-spacing: 1px;
+    }
+
+    .die-number-plate.placeholder .die-number-value {
+      color: rgba(245, 176, 65, 0.35);
+      text-shadow: none;
+    }
+
+    /* ── FOOTER TOTAL BOARD ──────────────────────────────── */
+    .casino-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 3;
+      margin-bottom: 2px;
+    }
+
+    .total-scoreboard {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 8px 32px;
+      box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.7),
+        inset 0 0 12px rgba(245, 176, 65, 0.2);
+    }
+
+    .scoreboard-label {
+      font-size: clamp(0.75rem, 1.4vw, 0.95rem);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+
+    .scoreboard-value {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 900;
+      color: #ffeaa7;
+      text-shadow:
+        0 0 12px rgba(245, 176, 65, 0.9),
+        0 0 24px rgba(245, 176, 65, 0.4);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    /* Mobile adjustments to maximize space */
+    @media (max-width: 650px) {
+      .felt-surface { padding: 12px 10px; }
+      .controls-panel { padding: 8px 14px; gap: 10px; }
+      .dice-arena { gap: 8px; }
+      .casino-header h1 { font-size: 1.5rem; letter-spacing: 2px; }
+      .roll-button { padding: 10px 20px; font-size: 0.95rem; }
+      .sound-toggle { top: 10px; right: 10px; font-size: 0.65rem; padding: 3px 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="casino-table-frame">
+  <div class="brass-inlay">
+    <div class="felt-surface">
+
+      <!-- Corner Card Suits -->
+      <span class="corner-suit suit-tl">♠</span>
+      <span class="corner-suit suit-tr">♥</span>
+      <span class="corner-suit suit-bl">♣</span>
+      <span class="corner-suit suit-br">♦</span>
+
+      <!-- Sound Toggle -->
+      <button class="sound-toggle" id="soundBtn" onclick="toggleSound()">
+        <span id="soundIcon">🔊</span> <span id="soundText">Sound ON</span>
+      </button>
+
+      <!-- 1. HEADER -->
+      <div class="casino-header">
+        <h1>🎲 Lucky Roll</h1>
+        <div class="subtitle">Casino Dice Table</div>
+      </div>
+
+      <!-- 2. CONTROLS: Scroll Arrows for Dice Count + ROLL button side by side -->
+      <div class="controls-panel">
+        <div class="dice-stepper">
+          <span class="stepper-label">Dice</span>
+          <div class="stepper-controls">
+            <!-- Down Arrow -->
+            <button class="arrow-btn" id="btnDown" onclick="adjustDiceCount(-1)" aria-label="Decrease Dice">▼</button>
+            <span class="dice-count-display" id="diceCountDisplay">1</span>
+            <!-- Up Arrow -->
+            <button class="arrow-btn" id="btnUp" onclick="adjustDiceCount(1)" aria-label="Increase Dice">▲</button>
+          </div>
+        </div>
+
+        <!-- Roll Button right next to arrows -->
+        <button class="roll-button" id="rollBtn" onclick="rollAllDice()">
+          <span>🎲 ROLL</span>
+        </button>
+      </div>
+
+      <!-- 3. DICE ARENA: Maximize space, shows dice and number below each die -->
+      <div class="dice-arena" id="diceArena"></div>
+
+      <!-- 4. TOTAL SCOREBOARD -->
+      <div class="casino-footer">
+        <div class="total-scoreboard">
+          <span class="scoreboard-label">Total Score</span>
+          <span class="scoreboard-value" id="totalScoreDisplay">—</span>
+        </div>
+      </div>
+
+    </div><!-- /felt-surface -->
+  </div><!-- /brass-inlay -->
+</div><!-- /casino-table-frame -->
+
+<script>
+  // ── STATE ────────────────────────────────────────────────────────
+  let diceCount = 1;          // Min 1, Max 5 (No zero)
+  let isRolling = false;
+  let diceValues = [1];       // Current values for each active die (1-6)
+  let soundEnabled = true;
+
+  // ── SOUND SYNTHESIS (Zero external dependencies) ──────────────────
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playDiceClatter() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      // Multi-tap rattle sound
+      for (let i = 0; i < 7; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(140 + Math.random() * 260, now + i * 0.08);
+        gain.gain.setValueAtTime(0.18, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.07);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.08);
+      }
+    } catch(e) {}
+  }
+
+  function playDiceLand() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    } catch(e) {}
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+    document.getElementById('soundText').textContent = soundEnabled ? 'Sound ON' : 'Sound OFF';
+  }
+
+  // ── GENERATE CLEAN, AUTHENTIC DIE IMAGE FROM 1 TO 6 ──────────────
+  // Every number from 1 to 6 has a distinct, beautiful, mathematically exact SVG face.
+  function getDiceSVG(faceValue) {
+    const val = Math.min(6, Math.max(1, Number(faceValue) || 1));
+
+    // Pip coordinates on 100x100 grid:
+    // (28, 28) = Top-Left      (72, 28) = Top-Right
+    // (28, 50) = Mid-Left      (50, 50) = Center        (72, 50) = Mid-Right
+    // (28, 72) = Bottom-Left   (72, 72) = Bottom-Right
+    const pipCoords = {
+      1: [{ cx: 50, cy: 50, r: 13.5 }],
+      2: [
+        { cx: 28, cy: 28, r: 9.5 },
+        { cx: 72, cy: 72, r: 9.5 }
+      ],
+      3: [
+        { cx: 28, cy: 28, r: 9.5 },
+        { cx: 50, cy: 50, r: 9.5 },
+        { cx: 72, cy: 72, r: 9.5 }
+      ],
+      4: [
+        { cx: 28, cy: 28, r: 9.5 },
+        { cx: 72, cy: 28, r: 9.5 },
+        { cx: 28, cy: 72, r: 9.5 },
+        { cx: 72, cy: 72, r: 9.5 }
+      ],
+      5: [
+        { cx: 28, cy: 28, r: 9.5 },
+        { cx: 72, cy: 28, r: 9.5 },
+        { cx: 50, cy: 50, r: 9.5 },
+        { cx: 28, cy: 72, r: 9.5 },
+        { cx: 72, cy: 72, r: 9.5 }
+      ],
+      6: [
+        { cx: 28, cy: 25, r: 8.8 },
+        { cx: 28, cy: 50, r: 8.8 },
+        { cx: 28, cy: 75, r: 8.8 },
+        { cx: 72, cy: 25, r: 8.8 },
+        { cx: 72, cy: 50, r: 8.8 },
+        { cx: 72, cy: 75, r: 8.8 }
+      ]
+    };
+
+    const dots = pipCoords[val] || pipCoords[1];
+
+    let pipsMarkup = '';
+    dots.forEach(d => {
+      pipsMarkup += `
+        <!-- Pip Shadow -->
+        <circle cx="${d.cx}" cy="${d.cy + 1}" r="${d.r}" fill="rgba(0,0,0,0.3)"/>
+        <!-- Pip Body -->
+        <circle cx="${d.cx}" cy="${d.cy}" r="${d.r}" fill="url(#rubyPipGradient)"/>
+        <!-- Pip Gloss Highlight -->
+        <circle cx="${d.cx - d.r * 0.28}" cy="${d.cy - d.r * 0.28}" r="${d.r * 0.32}" fill="rgba(255,255,255,0.65)"/>
+      `;
+    });
+
+    return `
+      <svg viewBox="0 0 100 100" class="die-svg" data-face="${val}">
+        <defs>
+          <!-- Ivory Die Surface Radial Gradient -->
+          <radialGradient id="dieBodyGradient" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="45%" stop-color="#f8f5ee"/>
+            <stop offset="85%" stop-color="#e8e2d2"/>
+            <stop offset="100%" stop-color="#cfc7b4"/>
+          </radialGradient>
+
+          <!-- Rich Ruby Pip Gradient -->
+          <radialGradient id="rubyPipGradient" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ff4a4a"/>
+            <stop offset="45%" stop-color="#c0392b"/>
+            <stop offset="85%" stop-color="#8a1717"/>
+            <stop offset="100%" stop-color="#550c0c"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Base Outer Shadow -->
+        <rect x="4" y="4" width="92" height="92" rx="19" fill="#b8b09e"/>
+
+        <!-- Main Die Body -->
+        <rect x="3" y="3" width="94" height="94" rx="19" fill="url(#dieBodyGradient)" stroke="#dcd6c5" stroke-width="1.5"/>
+
+        <!-- Top-view Gloss Edge -->
+        <rect x="6" y="6" width="88" height="88" rx="16" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
+
+        <!-- Die Pips (1 to 6) -->
+        ${pipsMarkup}
+      </svg>
+    `;
+  }
+
+  // ── BUILD A SINGLE DIE DOM SLOT ──────────────────────────────────
+  function createDieSlot(index) {
+    const val = diceValues[index] || 1;
+
+    const slot = document.createElement('div');
+    slot.className = 'die-slot';
+    slot.id = `die-slot-${index}`;
+
+    // Die visual container
+    const card = document.createElement('div');
+    card.className = 'die-card';
+    card.id = `die-card-${index}`;
+    card.title = 'Click to re-roll';
+    card.innerHTML = getDiceSVG(val);
+
+    // Click on individual die to roll
+    card.onclick = () => {
+      if (!isRolling) rollAllDice();
+    };
+
+    // Number indicator badge below the die
+    const plate = document.createElement('div');
+    plate.className = 'die-number-plate';
+    plate.id = `die-plate-${index}`;
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'die-number-value';
+    numSpan.id = `die-num-${index}`;
+    numSpan.textContent = val;
+
+    plate.appendChild(numSpan);
+    slot.appendChild(card);
+    slot.appendChild(plate);
+
+    return slot;
+  }
+
+  // ── RENDER STAGE WITH CURRENT DICE COUNT ──────────────────────────
+  function renderArena() {
+    const arena = document.getElementById('diceArena');
+
+    // Remove excess dice if diceCount decreased
+    while (arena.children.length > diceCount) {
+      arena.removeChild(arena.lastChild);
+    }
+
+    // Add new dice if diceCount increased
+    while (arena.children.length < diceCount) {
+      const idx = arena.children.length;
+      if (!diceValues[idx]) {
+        diceValues[idx] = 1; // Default to face 1
+      }
+      arena.appendChild(createDieSlot(idx));
+    }
+
+    // Synchronize existing slots
+    for (let i = 0; i < diceCount; i++) {
+      const card = document.getElementById(`die-card-${i}`);
+      const numSpan = document.getElementById(`die-num-${i}`);
+      const val = diceValues[i];
+      if (card) card.innerHTML = getDiceSVG(val);
+      if (numSpan) numSpan.textContent = val;
+    }
+
+    updateControlsState();
+    updateTotalScore();
+  }
+
+  // ── SCROLL ARROWS (Add / Subtract Dice) ───────────────────────────
+  function adjustDiceCount(delta) {
+    if (isRolling) return; // Prevent changing during roll
+    const newCount = diceCount + delta;
+
+    // Minimum 1, Maximum 5 (No zero)
+    if (newCount < 1 || newCount > 5) return;
+
+    diceCount = newCount;
+    document.getElementById('diceCountDisplay').textContent = diceCount;
+
+    // Reset ALL dice to face 1 whenever count changes
+    diceValues = Array(diceCount).fill(1);
+
+    renderArena();
+
+    // Hide total — only show after a roll
+    document.getElementById('totalScoreDisplay').textContent = '—';
+  }
+
+  // ── UPDATE ARROW BUTTON STATES ───────────────────────────────────
+  function updateControlsState() {
+    const btnDown = document.getElementById('btnDown');
+    const btnUp   = document.getElementById('btnUp');
+    const rollBtn = document.getElementById('rollBtn');
+
+    btnDown.disabled = (diceCount <= 1) || isRolling;
+    btnUp.disabled   = (diceCount >= 5) || isRolling;
+    rollBtn.disabled = isRolling;
+  }
+
+  // ── TOTAL SCORE CALCULATION ──────────────────────────────────────
+  function updateTotalScore() {
+    const totalDisplay = document.getElementById('totalScoreDisplay');
+    if (!diceValues || diceValues.length === 0) {
+      totalDisplay.textContent = '—';
+      return;
+    }
+    const sum = diceValues.reduce((acc, curr) => acc + curr, 0);
+    totalDisplay.textContent = sum;
+  }
+
+  // ── ROLL ALL DICE ANIMATION ──────────────────────────────────────
+  function rollAllDice() {
+    if (isRolling) return;
+    isRolling = true;
+    updateControlsState();
+
+    playDiceClatter();
+
+    // Prepare each die for rolling
+    const intervals = [];
+    for (let i = 0; i < diceCount; i++) {
+      const card = document.getElementById(`die-card-${i}`);
+      const numSpan = document.getElementById(`die-num-${i}`);
+      const plate = document.getElementById(`die-plate-${i}`);
+
+      if (!card) continue;
+
+      // Start rolling animation
+      card.classList.remove('settled');
+      card.classList.add('is-rolling');
+
+      // Temporarily blank or tumble the number below
+      if (plate) plate.classList.add('placeholder');
+      if (numSpan) numSpan.textContent = '?';
+
+      // Rapidly flicker random faces (1-6) while tumbling
+      const intervalId = setInterval(() => {
+        const randFace = Math.floor(Math.random() * 6) + 1;
+        card.innerHTML = getDiceSVG(randFace);
+      }, 70);
+
+      intervals.push(intervalId);
+    }
+
+    // After animation finishes (~950ms), settle each die on its final top view
+    setTimeout(() => {
+      // Clear rolling intervals
+      intervals.forEach(id => clearInterval(id));
+
+      const newValues = [];
+      for (let i = 0; i < diceCount; i++) {
+        // True random number 1 to 6
+        const finalValue = Math.floor(Math.random() * 6) + 1;
+        newValues.push(finalValue);
+
+        const card = document.getElementById(`die-card-${i}`);
+        const numSpan = document.getElementById(`die-num-${i}`);
+        const plate = document.getElementById(`die-plate-${i}`);
+
+        if (card) {
+          card.classList.remove('is-rolling');
+          // Force layout reflow for bounce effect
+          void card.offsetWidth;
+          card.classList.add('settled');
+
+          // EXACT MATCH: Die image shows top view of finalValue (1 to 6)
+          card.innerHTML = getDiceSVG(finalValue);
+        }
+
+        // EXACT MATCH: Number below die indicates the exact number shown in the die
+        if (numSpan) {
+          numSpan.textContent = finalValue;
+        }
+        if (plate) {
+          plate.classList.remove('placeholder');
+        }
+      }
+
+      diceValues = newValues;
+      playDiceLand();
+      updateTotalScore();
+
+      // Ensure scroll arrows and roll button remain immediately accessible
+      isRolling = false;
+      updateControlsState();
+
+    }, 950);
+  }
+
+  // ── INITIAL LOAD ─────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    // Start with 1 die (face 1)
+    diceValues = [1];
+    renderArena();
+  });
+</script>
+</body>
+</html>
